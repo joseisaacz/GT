@@ -17,7 +17,14 @@ eliminar([H|T],A,L):- \+ member(H,T),append(A,[H],L1),eliminar(T,L1,L2),sort(L2,
 
 my_member(A,G):-member(A,G).
 
-matriz(G,L):-quitaPeso(G,L1),flatten(L1,L2),eliminar(L2,[],L3),product(L3,L3,L).
+matriz(G,L):-quitaPeso(G,L1),flatten(L1,L2),eliminar(L2,[],L3),product(L3,L3,L4),length(L3,LE),
+matriz_aux(L4,L1,LE,LE,[],[],LE,L).
+
+matriz_aux([],_G,_,_,A,_A1,_O,A):-!.
+matriz_aux([H|T],G,1,C,A,A1,O,L):-member(H,G)-> C1 is C-1,append(A1,[1],A12),append(A,[A12],A2), matriz_aux(T,G,O,C1,A2,[],O,L),!;
+C1 is C-1,append(A1,[0],A12),append(A,[A12],A2), matriz_aux(T,G,O,C1,A2,[],O,L),!.
+matriz_aux([H|T],G,F,C,A,A1,O,L):- member(H,G)->  F1 is F-1,append(A1,[1],A2),matriz_aux(T,G,F1,C,A,A2,O,L);
+ F1 is F-1,append(A1,[0],A3),matriz_aux(T,G,F1,C,A,A3,O,L).
 
 
 
