@@ -31,3 +31,4 @@ matriz_aux([H|T],G,F,C,A,A1,O,L):- member(H,G)->  F1 is F-1,append(A1,[1],A2),ma
 product(A,B,C) :-
     findall([X,Y],(member(X,A),member(Y,B)),C).
 
+domino(L,[X,Y]):-member(X,L), member(Y,L), X\=Y.
