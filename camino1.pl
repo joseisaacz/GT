@@ -1,5 +1,5 @@
 camino(G,A,B,[A,B]):-member([A,B],G).
-camino(G,A,B,[A|C]):-member([A,X],G), camino(G,X,B,C), \+ member(A,C).
+camino(G,A,B,[A|C]):-member([A,X],G), camino(G,X,B,C), \+ member(A,C),!.
 
 %camino(G,A,B,[ ]):- \+member([A,B],G),!.
 %camino(G,A,B,[A,B]):-member([A,B],G).
@@ -30,12 +30,13 @@ product(A,B,C) :-
 
 domino(L,[X,Y]):-member(X,L), member(Y,L), X\=Y.
 
-conexo(G):- quitaPeso(G,L), listanodos(G,L3), domino(L3,[X,Y]), \+camino(L,X,Y,_), !. 
+conexo(G,false):- quitaPeso(G,L), flatten(L,L1), eliminar(L1,[],L3), domino(L3,[X,Y]), \+ camino(L,X,Y,_),!,false.
+conexo(G,true):- quitaPeso(G,L), flatten(L,L1), eliminar(L1,[],L3), domino(L3,[X,Y]),  camino(L,X,Y,_),true,!.
 
 listanodos(G,L):- quitaPeso(G, L0), flatten(L0, L1), eliminar(L1,[],L).
 
-busca(G,A,B,[A,B]):-conexo(G), quitaPeso(G,L), member([A,B],L).
-busca(G,A,B,[A|C]):-conexo(G), quitaPeso(G,L), member([A,X],L), camino(G,X,B,C), \+ member(A,C),!.
+busca(G, Camino):-quitaPeso(G,L),listanodos(G,L1), domino(L1,[A,B]), member([A,B],L), .
+%camino(G,A,B,[A|C]):-member([A,X],G), camino(G,X,B,C), \+ member(A,C),!.
 
 %hamilton(G, Camino, Costo):-conexo(G), listanodos(G, [H|T]), quitaPeso(G,[[A,B]|R]), \+member(H,Camino).    
 %hamilton(G, Camino, Costo):- conexo(G), listanodos(G, L1), quitaPeso(G,L2).
