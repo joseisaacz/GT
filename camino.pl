@@ -8,12 +8,11 @@ comb([_|T],K,Co):-comb(T,K,Co).
 %camino(G,A,B,[A,B]):-member([A,B],G).
 %camino(G,A,B,[A|C]):-member([A,X],G),member([X,A],G) ,camino(G,X,B,C), \+ member(A,C),!.
 
-camino(G,_,B,_):-flatten(G,L1),\+ member(B,L1),!,false.
-camino(G,A,_,_):-flatten(G,L1),\+ member(A,L1),!,false.
-camino(G,A,B,_):- \+ member([A,B],G),false,!.
-camino(G,A,B,[A,B]):-member([A,B],G).
-camino(G,A,B,[A|C]):-adyacente(A,X,G),X\==B,camino(G,X,B,C), \+ member(A,C).
-camino(G,A,B,_):- \+ adyacente(A,B,G),false,!.
+%camino(G,_,B,_):-flatten(G,L1),\+ member(B,L1),!,false.
+%camino(G,A,_,_):-flatten(G,L1),\+ member(A,L1),!,false.
+%camino(G,A,B,_):- \+ member([A,B],G),false,!.
+%camino(G,A,B,[A,B]):-member([A,B],G),!.
+%camino(G,A,B,[A|C]):-adyacente(A,X,G),X\==B,camino(G,X,B,C), \+ member(A,C).
 
 camino_aux(G,A,B,_):- \+ adyacente(A,B,G),false.
 camino_aux(G,_,B,_):-flatten(G,L1),\+ member(B,L1),!,false.
@@ -130,10 +129,50 @@ quitaDir([],Aux,Aux):-!.
 quitaDir([[A,B]|T],Aux,X):- append(Aux,[[A,B]],Aux2), append(Aux2,[[B,A]],Aux3), quitaDir(T,Aux3,X).
 quitaDir(G,X):- quitaDir(G,[],X).
 
+quitaDirPesos([],Aux,Aux):-!.
+quitaDirPesos([[A,B,Co]|T],Aux,X):- append(Aux,[[A,B,Co]],Aux2), append(Aux2,[[B,A,Co]],Aux3), quitaDirPesos(T,Aux3,X).
+quitaDirPesos(G,X):- quitaDirPesos(G,[],X).
+
 conexo(G):-quitaPeso(G,L),quitaDir(L,L1),conexo_aux(L1).
 fuerteconexo(G):-quitaPeso(G,L),conexo_aux(L).
 diametro(G,Ret):-quitaPeso(G,L),vertices(L,Vts),findall(X2,(member(X,Vts),member(Y,Vts),X\==Y,setof(X3,camino(L,X,Y,X3),X2)),X1),distancias(X1,Dis),max_dist(Dis,R1),member(X,R1),nth(1,X,Fi),last(X,La),
 append([],[Fi,La],Ret).
 
+ingresarArbol(E,[],[E,[],[]]):-!.
+%ingresarArbol(E,[R,I,D],[R,II,D]):-E<R,!,ingresarBST(E,I,II).
+%ingresarArbol(E,[R,[],D],[R,II,D]):-ingresarArbol(E,[],II),!.
+%ingresarArbol(E,[R,I,[]],[R,I,DD]):-ingresarArbol(E,[],DD),!.
+ingresarArbol(E,[R,I,D],[R,II,D]):-ingresarArbol(E,I,II),!.
+ingresarArbol(E,[R,I,D],[R,I,DD]):-ingresarArbol(E,D,DD),!.
 
-%setof(X1,camino(L,X,Y,X1),X2),write(X2).
+insertaLista(L,Ret):-insertaLista(L,[],Ret).
+insertaLista([],Aux,Aux):-!.
+insertaLista([H|T],Aux,Ret):-ingresarArbol(H,Aux,A1),insertaLista(T,A1,Ret).
+
+prim(G,_Ret):- \+ conexo(G),!.
+prim(G,Ret):- conexo(G),quitaPeso(G,L1),vertices(L1,Vts),prim(G,Vts,[],Vts,L),insertaLista(L,Ret),!.
+prim(_G,[],Visited,_Vts,Visited):-!.
+prim(G,[H|T],Visited,Vts,Ret):- member(H,Visited),prim(G,T,Visited,Vts,Ret).
+prim(G,[H|T],Visited,Vts,Ret):- \+ member(H,Visited),append(Visited,[H],V1),quitaDirPesos(G,G1),camino_minimo(G1,Vts,H,Cmin),last(Cmin,Lst),
+\+member(Lst,V1),append(V1,[Lst],Vstd1),prim(G,T,Vstd1,Vts,Ret).
+prim(G,[H|T],Visited,Vts,Ret):- \+ member(H,Visited),append(Visited,[H],V1),quitaDirPesos(G,G1),camino_minimo(G1,Vts,H,Cmin),last(Cmin,Lst),member(Lst,V1),prim(G,T,V1,Vts,Ret).
+
+
+camino_minimo(G,Vts,A,Ret):-quitaPeso(G,L),findall(W,(member(X,Vts),X\==A,camino(L,A,X,W)),R1),soloAristas(R1,R5),appendCosto(R5,G,R2),sort(R2,R3),deleteCosto(R3,R4),nth(1,R4,Ret).
+
+appendCosto([H|T],G,Ret):-appendCosto([H|T],G,[],Ret).
+appendCosto([],_G,Aux,Aux):-!.
+appendCosto([H|T],G,Aux,Ret):-calcula_costo(H,G,0,Co),append([Co],H,A1),append(Aux,[A1],Aux1),appendCosto(T,G,Aux1,Ret),!.
+
+soloAristas(L,Ret):-soloAristas(L,[],Ret).
+soloAristas([],Aux,Aux):-!.
+soloAristas([H|T],Aux,Ret):-length(H,L),L==2,append(Aux,[H],A1),soloAristas(T,A1,Ret),!.
+soloAristas([H|T],Aux,Ret):-length(H,L),L\==2,soloAristas(T,Aux,Ret),!.
+deleteCosto(L,Ret):-deleteCosto(L,[],Ret).
+deleteCosto([],Aux,Aux):-!.
+deleteCosto([[_X|T]|T1],Aux,Ret):-append(Aux,[T],A1),deleteCosto(T1,A1,Ret).
+camino(G,A,B,P) :- camino1(G,A,[B],P).
+camino1(_,A,[A|P1],[A|P1]).
+camino1(G,A,[Y|P1],P) :- adyacente(X,Y,G), \+ memberchk(X,[Y|P1]), camino1(G,A,[X,Y|P1],P).
+ex(L,X):-append(L,[X],L).
+
