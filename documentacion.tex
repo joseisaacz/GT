@@ -71,12 +71,12 @@ II CICLO\\
 	Antes de iniciar se deberia de introducir el concepto de estructura de datos el cual es algo que el profesor recurrentemente recuerda en clase a la hora de que se habla de grafos, arboles, pilas o cualquier otra estructura de datos.\\
 	Así que de esta manera citando a el profesor Eddy Ramírez una estructura de datos es:\\
 	 \begin{quotation}
-	 "mecanismo para adminstrar datos, y donde administrar quiere decir, insertar, buscar eliminar datos y modificar datos...La forma en la que inserto y modifico va ha ser distinto en cada estructura de datos ya que las estructuras son distintas en si mismas. La estructura de datos existe independientemente de que yo la implemente o no."\\
+	 "mecanismo para adminstrar datos, y donde administrar quiere decir, insertar, buscar eliminar datos y modificar datos...La forma en la que inserto y modifico va ha ser distinto en cada estructura de datos ya que las estructuras son distintas en si mismas. La estructura de datos existe independientemente de que yo la implemente o no." \cite{Eddy}\\
 	 \end{quotation}
 	
 	Con esto se evidencia el objetivo de reforzar conceptos de los cursos de estructuras discretas y estructuras de datos, ya que con esta introducción se procedió a hacer la introducción a el concepto de grafo el cual fue introducido por el profesor como:\\
 	\begin{quotation}
-	"una tupla de nodos y aristas, donde las aristas son relaciones binarias entre los nodos, la condición para que sea un grafo simple es que no haya una relación reflexiva, osea que no haya una relación de un nodo con sí mismo. El grafo es la estructura de datos más simple."\\
+	"una tupla de nodos y aristas, donde las aristas son relaciones binarias entre los nodos, la condición para que sea un grafo simple es que no haya una relación reflexiva, osea que no haya una relación de un nodo con sí mismo. El grafo es la estructura de datos más simple." \cite{Eddy}\\
 	\end{quotation}
 	\cite{Graph}
 	Para complementar la definición que el profesor brindó podemos añadir que un grafo es un conjunto de objetos llamados vertices o nodos unidos por enlaces llamados aristas o arcos. Son objeto de estudio en la teoría de grafos. Tipicamente se reprensenta de la siguiente forma: 
@@ -231,10 +231,42 @@ Existe una matriz de adyacencia única para cada grafo (sin considerar las permu
 \section{Descripción del Problema}
 	Los grafos son estructuras de datos muy maleables, capaces de adaptarse a una serie enorme de problemas, mientras se cuente con datos y una relación entre ellos, se tiene por lo tanto un grafo. Los grafos tienen muchosalgoritmos asociados que son necesarios para resolver diferentes problemas.El problema presentado por el profesor fue el de crear una bilioteca de grafos en el lenguaje  de programación $Prolog$ con lo que se puede hacer uso del paradigma de programación lógico además de que se puede aprovechar la ventaja de que el compilador del lenguaje $Prolog$ funciona como una pila, con esto para poder reducir los códigos de la mayoría de los algoritmos, ya que muchos de estos requieren de un dfs para ser solucionados. 
 \section{Descripción de la solución}
-
+Llegar a la solución de varios de estos ejercicios fue bastante difícil ya que manejar el lenguaje de programación Prolog es complicado de entender su funcionamiento y que la verdad sabemos de que muchas de las soluciones no están dadas de la manera más optima esperada pero que al menos ahora el equipo de trabajo posee una noción de como es que este lenguaje funciona. Los ejercicios que se lograron resolver son:
+\begin{itemize}
+\item Matriz de adyacencia.
+\item Conexo.
+\item Fuertemente Conexo.
+\item Ciclo.
+\item Hamilton.
+\item Ciclo de Hamilton.
+\item Diámetro.
+\item Prim.
+\end{itemize}
+La gran ventaja es que se utilizó el método que el profesor facilitó con el que se consiguen el camino entre 2 nodos. Ya que con este método se pudo guiar el equipo de trabajo para poder sacar la solución de los otros ejercicios listados arriba. 
+\begin{verbatim}
+camino(G,A,B,[A,B]):-member([A,B],G).
+camino(G,A,B,[A|C]):-member([A,X],G), camino(G,X,B,C), \+ member(A,C),!.
+\end{verbatim}
+El código de arriba es el que el profesor brindó con el que se encuentran los caminos entre 2 nodos.\\
+El método de la matrz de adyacencia es el siguiente.
+\begin{verbatim}
+matriz(G,L):-quitaPeso(G,L1),flatten(L1,L2),eliminar(L2,[],L3),product(L3,L3,L4),length(L3,LE),
+matriz_aux(L4,L1,LE,LE,[],[],LE,L).
+\end{verbatim}
+En esta solución se puede ver que fue necesario de utilizar un método auxiliar. 
+\begin{verbatim}
+fconexo(G,false):- quitaPeso(G,L), listanodos(G,L2), domino(L2,[X,Y]), \+ camino(L,X,Y,_),!,false.
+fconexo(G,true):- quitaPeso(G,L), listanodos(G,L2), domino(L2,[X,Y]),  camino(L,X,Y,_),true,!.
+\end{verbatim}
+En el método de arriba es el que se desarrollo para hacer el método de fuertemente conexo.\\
+Esto anterior son pequeños ejemplos de los métodos desarrollados para la solución del proyecto de la biblioteca de grafos, ya que se puede notar como es que en el los métodos principales se hizo necesario el uso de funciones auxiliares para que los códigos no quedaran tan grandes.\\
 \pagebreak
 \section{Conclusiones}
+El lenguaje de programación $Prolog$ es muy útil para darle solución a problemas de que involucren soluciones de backtracking, pero posee la desventaja de que es bastante complicado de dar las condiciones para que el método a desarrollar funcione.\\
 
+Con el desarrollo de este proyecto de grafos se reforzaron muchos conceptos de teoría de grafos, ya que para el desarrollo de los métodos lo debe de estar claro es la algoritmia de los ejercicios. Con esto podemos ver la importancia de los grafos, ya que en los cursos de discretas no se toma tanto en cuenta la programación, y el curso de estructuras de datos es un curso de manejo de punteros, y con esto se puede ver el restraso de conocimiento necesario, pero con este proyecto se refuerza y crea en el estudiante el gusto por temas de ciencias de la computación.\\
+
+Con este proyecto se puede ver los ejemplos de aplicaciones prácticas de los algoritmos y ejercicios desarrollados, ya que en las clases del curso el profesor pudo evidenciar estos ejemplos prácticos y dejar claro que se debe de conocer y dominar estos temas, ya que en materia de estructuras de datos es algo muy relevante.\\
 \section{Experiencia}
 
 \pagebreak
