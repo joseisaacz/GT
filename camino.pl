@@ -4,26 +4,49 @@ comb([H|T],K,[H|TC]):- K1 is K-1, comb(T, K1, TC).
 comb([_|T],K,Co):-comb(T,K,Co).
 
 
-camino(G,A,B,[A,B]):-member([A,B],G).
-camino(G,A,B,[A|C]):-member([A,X],G), camino(G,X,B,C), \+ member(A,C),!.
+%camino(G,A,_,_):- \+ member([A,_],G),!,false.
+%camino(G,A,B,[A,B]):-member([A,B],G).
+%camino(G,A,B,[A|C]):-member([A,X],G),member([X,A],G) ,camino(G,X,B,C), \+ member(A,C),!.
 
-ciclo(G,A,B,[A,B]):-memberchk([A,B],G).
-ciclo(G,A,B,[A|C]):-memberchk([A,X],G), ciclo(G,X,B,C).
+%camino(G,_,B,_):-flatten(G,L1),\+ member(B,L1),!,false.
+%camino(G,A,_,_):-flatten(G,L1),\+ member(A,L1),!,false.
+%camino(G,A,B,_):- \+ member([A,B],G),false,!.
+%camino(G,A,B,[A,B]):-member([A,B],G),!.
+%camino(G,A,B,[A|C]):-adyacente(A,X,G),X\==B,camino(G,X,B,C), \+ member(A,C).
 
-hamilton(G,_,_):- conexo(G,B),B==false,false,!.
-hamilton(G,_,L23):- conexo(G,B),B==true,quitaPeso(G,L),flatten(L,L1),eliminar(L1,[],L2),member(X,L2),valida_hamilton(L,X),!,member(X1,L2),member(X2,L1),X1\==X2,setof(X3,camino(L,X1,X2,X3),L23).
+camino_aux(G,A,B,_):- \+ adyacente(A,B,G),false.
+camino_aux(G,_,B,_):-flatten(G,L1),\+ member(B,L1),!,false.
+camino_aux(G,A,_,_):-flatten(G,L1),\+ member(A,L1),!,false.
+camino_aux(G,A,B,_):- \+ member([A,B],G),false.
+camino_aux(G,A,B,[A,B]):-member([A,B],G).
 
-hamilton_aux(G):-member(X,G),valida_hamilton(G,X),!.
+%camino_bool(G,_,B,_):-flatten(G,L1),\+ member(B,L1),!,false.
+%camino_bool(G,A,_,_):-flatten(G,L1),\+ member(A,L1),!,false.
+%camino_bool(G,A,B,[A,B]):- \+ member([A,B],G),false,!.
+%camino_bool(G,A,B,[A,B]):-member([A,B],G),!.
+%camino_bool(G,A,B,[A|C]):-member([A,X],G), camino(G,X,B,C),!, \+ member(A,C),!.
 
 
-conexo(G,false):- quitaPeso(G,L), flatten(L,L1), eliminar(L1,[],L3), domino(L3,[X,Y]), \+ camino(L,X,Y,_),!,false.
-conexo(G,true):- quitaPeso(G,L), flatten(L,L1), eliminar(L1,[],L3), domino(L3,[X,Y]),  camino(L,X,Y,_),true,!.
+hamilton(G,_,_):- \+ conexo(G),false,!.
+hamilton(G,CO,R):- conexo(G),quitaPeso(G,L),flatten(L,L1),eliminar(L1,[],L2),member(X,L2),valida_hamilton(L,X),!,member(X1,L2),member(Y,L2),X1\==Y,camino(L,X1,Y,CA),flatten(CA,CA1),eliminar(CA1,[],CA2),CA2==L2,append(CA,[],R),calcula_costo(CA,G,0,CO).
+
+chamilton(G,_,_):- \+ conexo(G),false,!.
+chamilton(G,CO,R):- conexo(G),quitaPeso(G,L),flatten(L,L1),eliminar(L1,[],L2),member(X,L2),valida_hamilton(L,X),!,member(X1,L2),member(Y,L2),X1\==Y,camino(L,X1,Y,CA),flatten(CA,CA1),eliminar(CA1,[],CA2),CA2==L2,chamilton_aux(L,CA,X1,Y,R1),calcula_costo(R1,G,0,CO),append([],R1,R).
 
 
+chamilton_aux(G,C,X,Y,C):- \+adyacente(Y,X,G).
+chamilton_aux(G,C,X,Y,R):- adyacente(Y,X,G),append(C,[X],R).
+%conexo(G):- quitaPeso(G,L),flatten(L,L1), eliminar(L1,[],L3),comb(L3,2,[X,Y]) ,conexo_aux(L,X,Y), true.
+%conexo(G):- quitaPeso(G,L),flatten(L,L1), eliminar(L1,[],L3),comb(L3,2,[X,Y]) ,\+ conexo_aux(L,X,Y),format("~NNo es Conexo",""), !,false.
+
+%conexo(G):- quitaPeso(G,L),flatten(L,L1), eliminar(L1,[],L3),domino(L3,[X,Y]) ,conexo_aux(L,X,Y), true.
+%conexo(G):- quitaPeso(G,L),flatten(L,L1), eliminar(L1,[],L3),domino(L3,[X,Y]) ,\+ conexo_aux(L,X,Y),format("~NNo es Fuerte Conexo",""), !,false.
+%conexo_aux(G,X,Y):- \+ camino_bool(G,X,Y,_),!,false.
+%conexo_aux(G,X,Y):-camino_bool(G,X,Y,_),!,true.
 %si X tiene una arista dirigida a Y.
 adyacente(X,Y,G) :- member([X,Y],G).
 
-ciclo(G,P):-quitaPeso(G,L), flatten(L,L1),eliminar(L1,[],L3),member(X,L3),ciclo_aux(L,X,P).
+ciclo(G,P):-quitaPeso(G,L),flatten(L,L1),eliminar(L1,[],L3),member(X,L3), ciclo_aux(L,X,P).
 
 ciclo_aux(G,A,P) :- 
    adyacente(B,A,G), camino(G,A,B,P1), length(P1,L), L > 1, append(P1,[A],P),!.
@@ -34,7 +57,8 @@ valida_hamilton([[_A,B]|[]],E):-B==E,true,!.
 valida_hamilton([[_A,B]|T],E):-B\==E,valida_hamilton(T,E),!.
 valida_hamilton([[_A,B]|[]],E):-B\==E,false,!.
 
-
+calcula_costo([_T],_G,A,A):-!.
+calcula_costo([H|T],G,A,R):-nth(1,T,B),member([H,B,X],G),A1 is A+X,calcula_costo(T,G,A1,R).
 
 quitaPeso(G,L):-quitaPeso_aux2(G,[],L).
 quitaPeso_aux2([],A,A):-!.
@@ -45,7 +69,6 @@ eliminar([],A,A1):-sort(A,A1),!.
 eliminar([H|T],A,L):-member(H,T),eliminar(T,A,L),!.
 eliminar([H|T],A,L):- \+ member(H,T),append(A,[H],L1),eliminar(T,L1,L),!.
 
-my_member(A,G):-member(A,G).
 
 matriz(G,L):-quitaPeso(G,L1),flatten(L1,L2),eliminar(L2,[],L3),product(L3,L3,L4),length(L3,LE),
 
@@ -60,4 +83,96 @@ product(A,B,C) :-
     findall([X,Y],(member(X,A),member(Y,B)),C).
 
 domino(L,[X,Y]):-member(X,L), member(Y,L), X\=Y.
+
+
+vertices(G,R):-flatten(G,R1),eliminar(R1,[],R).
+
+max_length([],Aux,Aux):-!.
+max_length([H|T],Aux,Ret):-length(H,L1),L1<Aux,max_length(T,Aux,Ret).
+max_length([H|T],Aux,Ret):-length(H,L1),L1>=Aux,max_length(T,L1,Ret).
+max_length([H|T],Ret):-length(H,L1),max_length([H|T],L1,Ret).
+
+min_length([],Aux,Aux):-!.
+min_length([H|T],Aux,Ret):-length(H,L1),L1>Aux,min_length(T,Aux,Ret).
+min_length([H|T],Aux,Ret):-length(H,L1),L1=<Aux,min_length(T,L1,Ret).
+min_length([H|T],Ret):-length(H,L1),min_length([H|T],L1,Ret).
+%min_length([H|T],Ret):-length(H,L1),min_length([H|T],L1,Ret)
+%distancias([[H|T]|T1],Aux,Ret):-length([H|T],N),N==1,append(Aux,[H|T],Aux1),distancias(T1,Aux1,Ret).
+distancias([H|T],Ret):-distancias_aux([H|T],[],Ret).
+
+
+max_dist_length([H|T],Ret):-max_length(H,L),max_dist_length([H|T],L,Ret).
+
+max_dist_length([],Len,Len):-!.
+max_dist_length([H|T],Len,Ret):-nth(1,H,L),length(L,L1),L1>=Len,max_dist_length(T,L1,Ret).
+max_dist_length([H|T],Len,Ret):-nth(1,H,L),length(L,L1),L1<Len,max_dist_length(T,Len,Ret).
+
+max_dist([H|T],Ret):-max_dist_length([H|T],Len),max_dist([H|T],[],Len,Ret).
+max_dist([],Aux,_Len,Aux):-!.
+max_dist([H|T],Aux,Len,Ret):-nth(1,H,L),length(L,L1),L1\==Len,max_dist(T,Aux,Len,Ret).
+max_dist([H|T],Aux,Len,Ret):-nth(1,H,L),length(L,L1),L1==Len,append(Aux,H,A1),max_dist(T,A1,Len,Ret).
+distancias_aux([],Aux,Aux):-!.
+distancias_aux([H|T],Aux,Ret):-min_length(H,L1),distancias_aux1(H,[],L1,R1),append(Aux,[R1],Aux1),distancias_aux(T,Aux1,Ret).
+distancias_aux1([],Aux,_Len,Aux):-!.
+distancias_aux1([H|T],Aux,Len,Ret):-length(H,L1),L1>Len,distancias_aux1(T,Aux,Len,Ret),!.
+distancias_aux1([H|T],Aux,Len,Ret):-length(H,L1),L1=<Len,append(Aux,[H],Aux1),distancias_aux1(T,Aux1,L1,Ret),!.
+conexo_aux(_G,[],_L,_Nds):-!.
+conexo_aux(G,[H|T],[D],Nds):- camino_bool(G,H,D),  conexo_aux(G,T,Nds,Nds).
+conexo_aux(G,[H|T],[H1|T1],Nds):- camino_bool(G,H,H1),  conexo_aux(G,[H|T],T1,Nds).
+conexo_aux(G) :- vertices(G, Nds), conexo_aux(G,Nds,Nds,Nds),!.
+
+camino_bool(_Grafo,Destino,Destino,_Ruta):-!.
+camino_bool(Grafo,Origen,Destino,Ruta):- \+ member(Origen,Ruta), append(Ruta,[Origen],Ruta2), member([Origen,Z],Grafo), camino_bool(Grafo,Z,Destino,Ruta2),!.
+camino_bool(Grafo,Origen,Destino):- camino_bool(Grafo,Origen,Destino,[]),!.
+
+quitaDir([],Aux,Aux):-!.
+quitaDir([[A,B]|T],Aux,X):- append(Aux,[[A,B]],Aux2), append(Aux2,[[B,A]],Aux3), quitaDir(T,Aux3,X).
+quitaDir(G,X):- quitaDir(G,[],X).
+
+quitaDirPesos([],Aux,Aux):-!.
+quitaDirPesos([[A,B,Co]|T],Aux,X):- append(Aux,[[A,B,Co]],Aux2), append(Aux2,[[B,A,Co]],Aux3), quitaDirPesos(T,Aux3,X).
+quitaDirPesos(G,X):- quitaDirPesos(G,[],X).
+
+conexo(G):-quitaPeso(G,L),quitaDir(L,L1),conexo_aux(L1).
+fuerteconexo(G):-quitaPeso(G,L),conexo_aux(L).
+diametro(G,Ret):-quitaPeso(G,L),vertices(L,Vts),findall(X2,(member(X,Vts),member(Y,Vts),X\==Y,setof(X3,camino(L,X,Y,X3),X2)),X1),distancias(X1,Dis),max_dist(Dis,R1),member(X,R1),nth(1,X,Fi),last(X,La),
+append([],[Fi,La],Ret).
+
+ingresarArbol(E,[],[E,[],[]]):-!.
+%ingresarArbol(E,[R,I,D],[R,II,D]):-E<R,!,ingresarBST(E,I,II).
+%ingresarArbol(E,[R,[],D],[R,II,D]):-ingresarArbol(E,[],II),!.
+%ingresarArbol(E,[R,I,[]],[R,I,DD]):-ingresarArbol(E,[],DD),!.
+ingresarArbol(E,[R,I,D],[R,II,D]):-ingresarArbol(E,I,II),!.
+ingresarArbol(E,[R,I,D],[R,I,DD]):-ingresarArbol(E,D,DD),!.
+
+insertaLista(L,Ret):-insertaLista(L,[],Ret).
+insertaLista([],Aux,Aux):-!.
+insertaLista([H|T],Aux,Ret):-ingresarArbol(H,Aux,A1),insertaLista(T,A1,Ret).
+
+prim(G,_Ret):- \+ conexo(G),!.
+prim(G,Ret):- conexo(G),quitaPeso(G,L1),vertices(L1,Vts),prim(G,Vts,[],Vts,L),insertaLista(L,Ret),!.
+prim(_G,[],Visited,_Vts,Visited):-!.
+prim(G,[H|T],Visited,Vts,Ret):- member(H,Visited),prim(G,T,Visited,Vts,Ret).
+prim(G,[H|T],Visited,Vts,Ret):- \+ member(H,Visited),append(Visited,[H],V1),quitaDirPesos(G,G1),camino_minimo(G1,Vts,H,Cmin),last(Cmin,Lst),
+\+member(Lst,V1),append(V1,[Lst],Vstd1),prim(G,T,Vstd1,Vts,Ret).
+prim(G,[H|T],Visited,Vts,Ret):- \+ member(H,Visited),append(Visited,[H],V1),quitaDirPesos(G,G1),camino_minimo(G1,Vts,H,Cmin),last(Cmin,Lst),member(Lst,V1),prim(G,T,V1,Vts,Ret).
+
+
+camino_minimo(G,Vts,A,Ret):-quitaPeso(G,L),findall(W,(member(X,Vts),X\==A,camino(L,A,X,W)),R1),soloAristas(R1,R5),appendCosto(R5,G,R2),sort(R2,R3),deleteCosto(R3,R4),nth(1,R4,Ret).
+
+appendCosto([H|T],G,Ret):-appendCosto([H|T],G,[],Ret).
+appendCosto([],_G,Aux,Aux):-!.
+appendCosto([H|T],G,Aux,Ret):-calcula_costo(H,G,0,Co),append([Co],H,A1),append(Aux,[A1],Aux1),appendCosto(T,G,Aux1,Ret),!.
+
+soloAristas(L,Ret):-soloAristas(L,[],Ret).
+soloAristas([],Aux,Aux):-!.
+soloAristas([H|T],Aux,Ret):-length(H,L),L==2,append(Aux,[H],A1),soloAristas(T,A1,Ret),!.
+soloAristas([H|T],Aux,Ret):-length(H,L),L\==2,soloAristas(T,Aux,Ret),!.
+deleteCosto(L,Ret):-deleteCosto(L,[],Ret).
+deleteCosto([],Aux,Aux):-!.
+deleteCosto([[_X|T]|T1],Aux,Ret):-append(Aux,[T],A1),deleteCosto(T1,A1,Ret).
+camino(G,A,B,P) :- camino1(G,A,[B],P).
+camino1(_,A,[A|P1],[A|P1]).
+camino1(G,A,[Y|P1],P) :- adyacente(X,Y,G), \+ memberchk(X,[Y|P1]), camino1(G,A,[X,Y|P1],P).
+ex(L,X):-append(L,[X],L).
 
